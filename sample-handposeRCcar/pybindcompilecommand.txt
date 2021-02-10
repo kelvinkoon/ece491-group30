@@ -1,1 +1,0 @@
-c++ -O3 -Wall -shared -std=c++11 -fPIC -I/usr/include/python3.6m -I/home/HwHiAiUser/.local/lib/python3.6/site-packages/pybind11/include -I ../inc-python  uart-python.cpp -o uart.cpython-36m-aarch64-linux-gnu.so
