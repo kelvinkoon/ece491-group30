@@ -13,7 +13,7 @@ from atlas_utils import presenteragent
 from atlas_utils.acl_image import AclImage
 import acl
 
-PRESENTER_CONF="../presenterserver.conf"
+PRESENTER_CONF="presenterserver.conf"
 CAMERA_FRAME_WIDTH = 1280
 CAMERA_FRAME_HEIGHT = 720
 
