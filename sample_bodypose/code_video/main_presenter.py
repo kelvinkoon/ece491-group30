@@ -13,6 +13,7 @@ from atlas_utils.acl_image import AclImage
 import acl
 from acl_model import Model
 from acl_resource import AclResource
+import copy
 
 MODEL_PATH = "../model/body_pose.om"
 BODYPOSE_CONF="../body_pose.conf"
@@ -20,6 +21,7 @@ MODEL_PATH_HEAD_POSE = 'head_pose_estimation.om'
 MODEL_PATH_FACE = 'face_detection.om'
 CAMERA_FRAME_WIDTH = 1280
 CAMERA_FRAME_HEIGHT = 720
+
 DATA_PATH = '../test_video/turn_right.mp4'
 GO1_PATH = '../reference_pose/go1.jpg'
 GO2_PATH = '../reference_pose/go2.jpg'
@@ -112,7 +114,8 @@ class StateMachine:
             self.temp=self.temp-1
 
     def terminate(self, result, headpose_result):
-        exit(0)
+        ## DEBUG: DO NOTHING
+        # exit(1)
         pass
 
     statelist = {
@@ -187,8 +190,10 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
     resultList=[]
     ## Get Input ##
     # Read the video input using OpenCV
-    cap = cv2.VideoCapture(frames_input_src)
+    # cap = cv2.VideoCapture(frames_input_src)
 
+    # Initialize Camera
+    cap = Camera(id = 0, fps = 10)
 
     # Read reference images
     img_go1 = cv2.imread(GO1_PATH)
@@ -226,7 +231,6 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
     countright=0
     countstop=0
 
-
     ## Set Output ##
     if is_presenter_server:
         # if using presenter server, then open the presenter channel
@@ -234,68 +238,36 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         if chan == None:
             print("Open presenter channel failed")
             return
-    else:
-        # if saving result as video file (mp4), then set the output video writer using opencv
-        video_output_path = '{}/demo-{}-{}.mp4'.format(output_dir, os.path.basename(frames_input_src), str(random.randint(1, 100001)))
-        video_writer = cv2.VideoWriter(video_output_path, 0x7634706d, 25,
-                                                (1280, 720))
-        if video_writer == None:
-            print('Error: cannot get video writer from openCV')
+    # else:
+    #     # if saving result as video file (mp4), then set the output video writer using opencv
+    #     video_output_path = '{}/demo-{}-{}.mp4'.format(output_dir, os.path.basename(frames_input_src), str(random.randint(1, 100001)))
+    #     video_writer = cv2.VideoWriter(video_output_path, 0x7634706d, 25,
+    #                                             (1280, 720))
+    #     if video_writer == None:
+    #         print('Error: cannot get video writer from openCV')
 
     predict=StateMachine()
 
-    while(cap.isOpened()):
+    while True:
         ## Read one frame of the input video ## 
-        ret, img_original = cap.read()
+        img_original = cap.read()
 
-        if not ret:
-            print('Cannot read more, Reach the end of video')
+        if not img_original:
+            print('Error: Camera read failed')
             break
 
         ## HEAD POSE BEGIN
+
         # Camera Input (YUV) to RGB Image
-        # image_byte = img_original.tobytes()
-        # image_array = np.frombuffer(image_byte, dtype=np.uint8)
-        # img_original_face = YUVtoRGB(image_array)
-
-        img_original_face = img_original
-        input_image = PreProcessing_face(img_original_face)
-
-        face_flag = False
-        #face model inference and post processing
-        try:
-            resultList_face  = model_face.execute([input_image]).copy()
-            xmin, ymin, xmax, ymax = PostProcessing_face(img_original_face, resultList_face)
-            bbox_list = [xmin, ymin, xmax, ymax]
-            face_flag = True
-        except:
-            print('No face detected')
-            
-        head_status_string = "No output"
-        if face_flag is True:
-            # # Preprocessing head pose estimation
-            input_image = PreProcessing_head(img_original_face, bbox_list)
-            # head pose estimation model inference
-            try: 
-                resultList_head = model_head_pose.execute([input_image]).copy()	
-            except Exception as e:
-                print('No head pose estimation output')
-
-            #post processing to obtain coordinates for lines drawing
-            facepointList, head_status_string, canvas = PostProcessing_head(resultList_head, bbox_list, img_original_face)
-            # print('Head angles:', resultList_head[2])
-            print('Pose:', head_status_string)
-        # else:
-            # canvas = img_original_face
-
-        headpose_result = head_status_string
-
-        ## HEAD POSE END
-
+        image_byte = img_original.tobytes()
+        image_array = np.frombuffer(image_byte, dtype=np.uint8)
+        img_original = YUVtoRGB(image_array)
+        img_original2 = copy.copy(img_original)
+        
         ## Model Prediction ##
         # model_processor.predict: processing + model inference + postprocessing
         # canvas: the picture overlayed with human body joints and limbs
-        canvas_input, joint_list_input = model_processor.predict(img_original)
+        img_bodypose, joint_list_input = model_processor.predict(img_original)
         
         angle_input=getangle(joint_list_input)
 
@@ -309,7 +281,6 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         dif8=abs(np.sum(angle_input-angle_right2))
         dif9=abs(np.sum(angle_input-angle_stop))
 
-        
         #list_result=min(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
         list_result=[dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9]
         decode_list={
@@ -325,30 +296,62 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         }
 
         result=decode_list[list_result.index(min(list_result))]
-        
         resultList.append(result)
+
+
+        ## HEADPOSE BEGIN
+        input_image = PreProcessing_face(img_original2)
+
+        face_flag = False
+        #face model inference and post processing
+        try:
+            resultList_face  = model_face.execute([input_image]).copy()
+            xmin, ymin, xmax, ymax = PostProcessing_face(img_bodypose, resultList_face)
+            bbox_list = [xmin, ymin, xmax, ymax]
+            face_flag = True
+        except:
+            print('No face detected')
+            
+        head_status_string = "No output"
+        if face_flag is True:
+            # # Preprocessing head pose estimation
+            input_image = PreProcessing_head(img_original2, bbox_list)
+            # head pose estimation model inference
+            try: 
+                resultList_head = model_head_pose.execute([input_image]).copy()	
+            except Exception as e:
+                print('No head pose estimation output')
+
+            #post processing to obtain coordinates for lines drawing
+            facepointList, head_status_string, img_headpose = PostProcessing_head(resultList_head, bbox_list, img_bodypose)
+            # print('Head angles:', resultList_head[2])
+            print('Pose:', head_status_string)
+        else:
+            img_headpose = img_bodypose
+
+        headpose_result = head_status_string
+
+        ## HEAD POSE END
+
         predict.staterunner(result,headpose_result)
         ## Present Result ##
         if is_presenter_server:
             # convert to jpeg image for presenter server display
-            _,jpeg_image = cv2.imencode('.jpg',canvas_input)
+            _,jpeg_image = cv2.imencode('.jpg', img_headpose)
             # construct AclImage object for presenter server
             jpeg_image = AclImage(jpeg_image, img_original.shape[0], img_original.shape[1], jpeg_image.size)
             # send to presenter server
             chan.send_detection_data(img_original.shape[0], img_original.shape[1], jpeg_image, [])
 
-        else:
+        # else:
             # save to video
-            video_writer.write(canvas_input)
+            # video_writer.write(canvas_input)
     print(resultList)
     # release the resources
     cap.release()
-    if not is_presenter_server:
-        video_writer.release()
 
-
-
-
+    # if not is_presenter_server:
+    #     video_writer.release()
 
 
 def YUVtoRGB(byteArray):
@@ -495,7 +498,7 @@ def PostProcessing_head(resultList, boxList, image):
         fontColor,
         lineType)
 
-    cv2.imwrite('out/result_out.jpg', canvas)
+    # cv2.imwrite('out/result_out.jpg', canvas)
     return facepointList, head_status_string, canvas
     
 
