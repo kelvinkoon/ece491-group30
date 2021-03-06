@@ -28,78 +28,105 @@ STOP_PATH = '../reference_pose/stop.jpg'
 
 class StateMachine:
     def __init__(self): 
-        self.state = "stop"    # 初始状态
-        self.temp=5
+        self.state = "idle"    # 初始状态
+        self.temp=5000
+
+    def idle(self, result, headpose_result):
+        print(headpose_result)
+        if headpose_result == "Head turn left slightly":
+            self.state="stop"
+            self.temp=5000
+        else:
+            self.state="idle"
     
-    def stop(self, result):
-        if(result=="stop")
+    def stop(self, result, headpose_result):
+        if(result=="stop"):
             print("the video is stop")
-        elif(reult=="left1")
+        elif(result=="left1"):
             self.state="left1"
-            self.temp=5
-        elif(reult=="right1")
-            self.temp=5
+            self.temp=5000
+        elif(result=="right1"):
+            self.temp=5000
             self.state="right1"
-        elif(reult=="go1")
-            self.temp=5
+        elif(result=="go1"):
+            self.temp=5000
             self.state="go1"
 
-    def left1(self, result):
-        if(result=="left2")
+    def left1(self, result, headpose_result):
+        if(result=="left2"):
+            self.state="left2"
+        elif(self.temp==0):
             self.state="stop"
+        else:
+            self.temp=self.temp-1
+    
+    def left2(self, result, headpose_result):
+            self.state="terminate"
             print("the video is going left")
-        elif(self.temp==0)
-            self.state="stop"
-        else
-            self.temp=self.temp-1
-            
+
         
-    def right1(self, result):
-        if(result=="right2")
-            self.state="stop"
+    def right1(self, result, headpose_result):
+        if(result=="right2"):
+            self.state="right2"
             print("the video is going right")
-        elif(self.temp==0)
+        elif(self.temp==0):
             self.state="stop"
-        else
+        else:
             self.temp=self.temp-1
+    
+    def right2(self, result, headpose_result):
+        self.state="terminate"
+        print("the video is going right")
             
-    def go1(self, result): 
-        if(result=="go2")
+    def go1(self, result, headpose_result): 
+        if(result=="go2"):
             self.state="go2"
-            self.temp=5
-        elif(self.temp==0)
+            self.temp=5000
+        elif(self.temp==0):
             self.state="stop"
-        else
+        else:
             self.temp=self.temp-1
     
-    def go2(self, result): 
-        if(result=="go3")
+    def go2(self, result, headpose_result): 
+        if(result=="go3"):
             self.state="go3"
-            self.temp=5
-        elif(self.temp==0)
+            self.temp=5000
+        elif(self.temp==0):
             self.state="stop"
-        else
+        else:
             self.temp=self.temp-1
     
-    def go3(self, result): 
-        if(result=="go4")
-            self.state="stop"
+    def go3(self, result, headpose_result): 
+        if(result=="go4"):
+            self.state="terminate"
             print("the video is go")
-        elif(self.temp==0)
+        elif(self.temp==0):
             self.state="stop"
-        else
+        else:
             self.temp=self.temp-1
-            
-    def staterunner(self, result):
-        statelist = {
-        "stop":stop,
-        "left1":left1,
-        "right1":right1,
-        "go1":go1,
-        "go2":go2,
-        "go3":go3,
-        }
-        statelist.get(self.state,"stop")(result) 
+
+    def terminate(self, result, headpose_result):
+        ## DEBUG: DO NOTHING
+        # exit(1)
+        pass
+
+    statelist = {
+    "idle":idle,
+    "stop":stop,
+    "left1":left1,
+    "left2":left2,
+    "right1":right1,
+    "right2":right2,
+    "go1":go1,
+    "go2":go2,
+    "go3":go3,
+    "terminate":terminate
+    }       
+    def staterunner(self, result, headpose_result):
+        privousState=self.state
+        self.statelist.get(self.state)(self, result, headpose_result)
+        # self.statelist.get(self.state)
+        print("the current state is",privousState,"  the result is ",result, "  the next state is",self.state)
 
 def getangle(point):
     #empty array for angles
@@ -139,6 +166,11 @@ def execute(model_path):
     acl_resource.init()
 
     ## Prepare Model ##
+    
+     # load offline model for face detection
+    model_face = Model(acl_resource, MODEL_PATH_FACE)
+    model_head_pose = Model(acl_resource, MODEL_PATH_HEAD_POSE)
+    
     # parameters for model path and model inputs
     model_parameters = {
         'model_dir': model_path,
@@ -148,6 +180,7 @@ def execute(model_path):
     # perpare model instance: init (loading model from file to memory)
     # model_processor: preprocessing + model inference + postprocessing
     model_processor = ModelProcessor(acl_resource, model_parameters)
+    resultList=[]
     
     # Read reference images
     img_go1 = cv2.imread(GO1_PATH)
