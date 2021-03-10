@@ -14,6 +14,7 @@ import acl
 from acl_model import Model
 from acl_resource import AclResource
 import copy
+import uart
 
 MODEL_PATH = "../model/body_pose.om"
 BODYPOSE_CONF="../body_pose.conf"
@@ -23,10 +24,6 @@ CAMERA_FRAME_WIDTH = 1280
 CAMERA_FRAME_HEIGHT = 720
 
 DATA_PATH = '../test_video/turn_right.mp4'
-GO1_PATH = '../reference_pose/go1.jpg'
-GO2_PATH = '../reference_pose/go2.jpg'
-GO3_PATH = '../reference_pose/go3.jpg'
-GO4_PATH = '../reference_pose/go4.jpg'
 LEFT1_PATH = '../reference_pose/left1.jpg'
 LEFT2_PATH = '../reference_pose/left2.jpg'
 RIGHT1_PATH = '../reference_pose/right1.jpg'
@@ -39,8 +36,19 @@ class StateMachine:
         self.state = "idle"    # 初始状态
         self.temp=5000
 
+        ## UART BEGIN
+        # self.conn = uart.UART()
+        # self.conn.open()
+
+        # ## FUNCTIONS
+        # self.conn.send_left()
+        # self.conn.send_right()
+        # self.conn.send_stop()
+        ## UART END
+
     def idle(self, result, headpose_result):
         print(headpose_result)
+        # if True:
         if headpose_result == "Head turn left slightly":
             self.state="stop"
             self.temp=5000
@@ -56,9 +64,6 @@ class StateMachine:
         elif(result=="right1"):
             self.temp=5000
             self.state="right1"
-        elif(result=="go1"):
-            self.temp=5000
-            self.state="go1"
 
     def left1(self, result, headpose_result):
         if(result=="left2"):
@@ -70,13 +75,11 @@ class StateMachine:
     
     def left2(self, result, headpose_result):
             self.state="terminate"
-            print("the video is going left")
+            print("the video is going left2")
 
-        
     def right1(self, result, headpose_result):
         if(result=="right2"):
             self.state="right2"
-            print("the video is going right")
         elif(self.temp==0):
             self.state="stop"
         else:
@@ -84,57 +87,27 @@ class StateMachine:
     
     def right2(self, result, headpose_result):
         self.state="terminate"
-        print("the video is going right")
+        print("the video is going right2")
             
-    def go1(self, result, headpose_result): 
-        if(result=="go2"):
-            self.state="go2"
-            self.temp=5000
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
-    
-    def go2(self, result, headpose_result): 
-        if(result=="go3"):
-            self.state="go3"
-            self.temp=5000
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
-    
-    def go3(self, result, headpose_result): 
-        if(result=="go4"):
-            self.state="terminate"
-            print("the video is go")
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
-
     def terminate(self, result, headpose_result):
-        ## DEBUG: DO NOTHING
-        # exit(1)
+        print("terminate")
         pass
 
     statelist = {
-    "idle":idle,
-    "stop":stop,
-    "left1":left1,
-    "left2":left2,
-    "right1":right1,
-    "right2":right2,
-    "go1":go1,
-    "go2":go2,
-    "go3":go3,
-    "terminate":terminate
-    }       
+        "idle":idle,
+        "stop":stop,
+        "left1":left1,
+        "left2":left2,
+        "right1":right1,
+        "right2":right2,
+        "terminate":terminate
+    }
+
     def staterunner(self, result, headpose_result):
-        privousState=self.state
+        prevState=self.state
         self.statelist.get(self.state)(self, result, headpose_result)
-        # self.statelist.get(self.state)
-        print("the current state is",privousState,"  the result is ",result, "  the next state is",self.state)
+        print(f'Current state: {prevState}, Result: {result}, Next State: {self.state}')
+
 
 def getangle(point):
     #empty array for angles
@@ -159,11 +132,20 @@ def getangle(point):
     ratio3=round(np.dot(vec4_5,vec4_3)/math.sqrt(np.dot(vec4_5,vec4_5)*np.dot(vec4_3,vec4_3)),10)
     ratio4=round(np.dot(vec3_4,vec3_13)/math.sqrt(np.dot(vec3_4,vec3_4)*np.dot(vec3_13,vec3_13)),10)
 
-    angle[0]=math.acos(ratio1)
-    angle[1]=math.acos(ratio2)
-    angle[2]=math.acos(ratio3)
-    angle[3]=math.acos(ratio4)
+    angle[0]=math.acos(ratio1)*180/(math.pi)
+    angle[1]=math.acos(ratio2)*180/(math.pi)
+    angle[2]=math.acos(ratio3)*180/(math.pi)
+    angle[3]=math.acos(ratio4)*180/(math.pi)
 
+    #added
+    if np.cross(vec1_2,vec1_0)<0:
+        angle[0]=360-angle[0]
+    if np.cross(vec0_1,vec0_13)<0:
+        angle[1]=360-angle[1]
+    if np.cross(vec4_3,vec4_5)<0:
+        angle[2]=360-angle[2]
+    if np.cross(vec3_13,vec3_4)<0:
+        angle[3]=360-angle[3] 
     return angle
 
 def execute(model_path, frames_input_src, output_dir, is_presenter_server):
@@ -196,37 +178,24 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
     cap = Camera(id = 0, fps = 10)
 
     # Read reference images
-    img_go1 = cv2.imread(GO1_PATH)
-    img_go2 = cv2.imread(GO2_PATH)
-    img_go3 = cv2.imread(GO3_PATH)
-    img_go4 = cv2.imread(GO4_PATH)
     img_left1 = cv2.imread(LEFT1_PATH)
     img_left2 = cv2.imread(LEFT2_PATH)
     img_right1 = cv2.imread(RIGHT1_PATH)
     img_right2 = cv2.imread(RIGHT2_PATH)
     img_stop = cv2.imread(STOP_PATH)
     # Get reference output
-    canvas_go1,joint_list_go1 = model_processor.predict(img_go1)
-    canvas_go2,joint_list_go2 = model_processor.predict(img_go2)
-    canvas_go3,joint_list_go3 = model_processor.predict(img_go3)
-    canvas_go4,joint_list_go4 = model_processor.predict(img_go4)
     canvas_left1,joint_list_left1 = model_processor.predict(img_left1)
     canvas_left2,joint_list_left2 = model_processor.predict(img_left2)
     canvas_right1,joint_list_right1 = model_processor.predict(img_right1)
     canvas_right2,joint_list_right2 = model_processor.predict(img_right2)
     canvas_stop,joint_list_stop = model_processor.predict(img_stop)
     # Get angles from reference images
-    angle_go1=getangle(joint_list_go1)
-    angle_go2=getangle(joint_list_go2)
-    angle_go3=getangle(joint_list_go3)
-    angle_go4=getangle(joint_list_go4)
     angle_left1=getangle(joint_list_left1)
     angle_left2=getangle(joint_list_left2)
     angle_right1=getangle(joint_list_right1)
     angle_right2=getangle(joint_list_right2)
     angle_stop=getangle(joint_list_stop)
     # Initialize count
-    countgo=0
     countleft=0
     countright=0
     countstop=0
@@ -238,13 +207,6 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         if chan == None:
             print("Open presenter channel failed")
             return
-    # else:
-    #     # if saving result as video file (mp4), then set the output video writer using opencv
-    #     video_output_path = '{}/demo-{}-{}.mp4'.format(output_dir, os.path.basename(frames_input_src), str(random.randint(1, 100001)))
-    #     video_writer = cv2.VideoWriter(video_output_path, 0x7634706d, 25,
-    #                                             (1280, 720))
-    #     if video_writer == None:
-    #         print('Error: cannot get video writer from openCV')
 
     predict=StateMachine()
 
@@ -271,33 +233,42 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         
         angle_input=getangle(joint_list_input)
 
-        dif1=abs(np.sum(angle_input-angle_go1))
-        dif2=abs(np.sum(angle_input-angle_go2))
-        dif3=abs(np.sum(angle_input-angle_go3))
-        dif4=abs(np.sum(angle_input-angle_go4))
         dif5=abs(np.sum(angle_input-angle_left1))
         dif6=abs(np.sum(angle_input-angle_left2))
         dif7=abs(np.sum(angle_input-angle_right1))
         dif8=abs(np.sum(angle_input-angle_right2))
         dif9=abs(np.sum(angle_input-angle_stop))
 
-        #list_result=min(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
-        list_result=[dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9]
-        decode_list={
-            0:"go1",
-            1:"go2",
-            2:"go3",
-            3:"go4",
-            4:"left1",
-            5:"left2",
-            6:"right1",
-            7:"right2",
-            8:"stop",
-        }
+        pose=min(dif5,dif6,dif7,dif8,dif9)
 
-        result=decode_list[list_result.index(min(list_result))]
+        result = "invalid"
+        if pose < 50:
+            if pose==dif5:
+                result = "left1"
+            elif pose==dif6:
+                result = "left2"
+            elif pose==dif7:
+                result = "right1"
+            elif pose==dif8:
+                result = "right2"
+            elif pose==dif9:
+                result = "stop"
+
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10, 100)
+        fontScale              = 1
+        fontColor              = (255,255,255)
+        lineType               = 2
+
+        cv2.putText(img_bodypose, result, 
+            bottomLeftCornerOfText, 
+            font, 
+            fontScale,
+            fontColor,
+            lineType)
+    
+
         resultList.append(result)
-
 
         ## HEADPOSE BEGIN
         input_image = PreProcessing_face(img_original2)
@@ -343,15 +314,9 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
             # send to presenter server
             chan.send_detection_data(img_original.shape[0], img_original.shape[1], jpeg_image, [])
 
-        # else:
-            # save to video
-            # video_writer.write(canvas_input)
     print(resultList)
     # release the resources
     cap.release()
-
-    # if not is_presenter_server:
-    #     video_writer.release()
 
 
 def YUVtoRGB(byteArray):
@@ -400,7 +365,7 @@ def PostProcessing_face(image, resultList, threshold=0.9):
             ymin = int(round(det_ymin * image.shape[0]))
             xmax = int(round(det_xmax * image.shape[1]))
             ymax = int(round(det_ymax * image.shape[0]))
-            print('BBOX:', xmin, ymin, xmax, ymax)
+            # print('BBOX:', xmin, ymin, xmax, ymax)
             cv2.rectangle(image,(xmin,ymin),(xmax,ymax),(0,255,0),1)
         else:
             continue
@@ -471,8 +436,8 @@ def PostProcessing_head(resultList, boxList, image):
     box_height = boxList[3] - boxList[1]
     box_width = box_width
     box_height = box_height
-    print('box width:', box_width)
-    print('box height:', box_height)
+    # print('box width:', box_width)
+    # print('box height:', box_height)
     for j in range(136):
         if j % 2 == 0:
             HeadPosePoint.append((1+resultList[0][0][j])/2  * box_width + boxList[0])
@@ -509,7 +474,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default=MODEL_PATH)
     parser.add_argument('--frames_input_src', type=str,default=DATA_PATH, help="Directory path for video.")
     parser.add_argument('--output_dir', type=str, default='./outputs', help="Output Path")
-    parser.add_argument('--is_presenter_server', type=bool, default=False, help="Display on presenter server or save to a video mp4 file (T/F)")
+    parser.add_argument('--is_presenter_server', type=bool, default=True, help="Display on presenter server or save to a video mp4 file (T/F)")
     args = parser.parse_args()
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
