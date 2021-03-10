@@ -17,7 +17,7 @@ MODEL_PATH = "../model/body_pose.om"
 BODYPOSE_CONF="../body_pose.conf"
 CAMERA_FRAME_WIDTH = 1280
 CAMERA_FRAME_HEIGHT = 720
-DATA_PATH = '../test_video/turn_right.mp4'
+DATA_PATH = '../test_video/turn_left.mp4'
 GO1_PATH = '../reference_pose/go1.jpg'#
 GO2_PATH = '../reference_pose/go2.jpg'#
 GO3_PATH = '../reference_pose/go3.jpg'#
@@ -72,11 +72,20 @@ def getangle(point):
     ratio3=round(np.dot(vec4_5,vec4_3)/math.sqrt(np.dot(vec4_5,vec4_5)*np.dot(vec4_3,vec4_3)),10)
     ratio4=round(np.dot(vec3_4,vec3_13)/math.sqrt(np.dot(vec3_4,vec3_4)*np.dot(vec3_13,vec3_13)),10)
 
-    angle[0]=math.acos(ratio1)
-    angle[1]=math.acos(ratio2)
-    angle[2]=math.acos(ratio3)
-    angle[3]=math.acos(ratio4)
-
+    angle[0]=math.acos(ratio1)*180/(math.pi)
+    angle[1]=math.acos(ratio2)*180/(math.pi)
+    angle[2]=math.acos(ratio3)*180/(math.pi)
+    angle[3]=math.acos(ratio4)*180/(math.pi)
+    
+    #added
+    if np.cross(vec1_2,vec1_0)<0:
+        angle[0]=360-angle[0]
+    if np.cross(vec0_1,vec0_13)<0:
+        angle[1]=360-angle[1]
+    if np.cross(vec4_3,vec4_5)<0:
+        angle[2]=360-angle[2]
+    if np.cross(vec3_13,vec3_4)<0:
+        angle[3]=360-angle[3] 
     return angle
 
 
@@ -177,24 +186,25 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         dif2=abs(np.sum(angle_input-angle_go2))
         dif3=abs(np.sum(angle_input-angle_go3))
         dif4=abs(np.sum(angle_input-angle_go4))
-        dif5=abs(np.sum(angle_input-angle_left1))
-        dif6=abs(np.sum(angle_input-angle_left2))
-        dif7=abs(np.sum(angle_input-angle_right1))
-        dif8=abs(np.sum(angle_input-angle_right2))
-        dif9=abs(np.sum(angle_input-angle_stop1))
+        dif5=(np.sum(abs(angle_input-angle_left1)))
+        dif6=(np.sum(abs(angle_input-angle_left2)))
+        dif7=(np.sum(abs(angle_input-angle_right1)))
+        dif8=(np.sum(abs(angle_input-angle_right2)))
+        dif9=(np.sum(abs(angle_input-angle_stop1)))
         #dif10=abs(np.sum(angle_input-angle_stop2))
 
         print(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
-        pose=min(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
+        # pose=min(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
+        pose=min(dif5,dif6,dif7,dif8,dif9)
 
-        if pose>0.5:
+        if pose>50:
             countinvalid=countinvalid+1
         
         else:
 
-            if pose==dif1 or pose==dif2 or pose==dif3 or pose==dif4:
-                countgo=countgo+1
-            elif pose==dif5 or pose==dif6:
+            # if pose==dif1 or pose==dif2 or pose==dif3 or pose==dif4:
+            #     countgo=countgo+1
+            if pose==dif5 or pose==dif6:
                 countleft=countleft+1
                 if pose==dif5:
                     countleft1=countleft1+1
