@@ -54,9 +54,9 @@ class StateMachine:
         elif(result=="right1"):
             self.temp=5000
             self.state="right1"
-        elif(result=="go1"):
-            self.temp=5000
-            self.state="go1"
+        # elif(result=="go1"):
+        #     self.temp=5000
+        #     self.state="go1"
 
     def left1(self, result, headpose_result):
         if(result=="left2"):
@@ -84,35 +84,35 @@ class StateMachine:
         self.state="terminate"
         print("the video is going right")
             
-    def go1(self, result, headpose_result): 
-        if(result=="go2"):
-            self.state="go2"
-            self.temp=5000
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
+    # def go1(self, result, headpose_result): 
+    #     if(result=="go2"):
+    #         self.state="go2"
+    #         self.temp=5000
+    #     elif(self.temp==0):
+    #         self.state="stop"
+    #     else:
+    #         self.temp=self.temp-1
     
-    def go2(self, result, headpose_result): 
-        if(result=="go3"):
-            self.state="go3"
-            self.temp=5000
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
+    # def go2(self, result, headpose_result): 
+    #     if(result=="go3"):
+    #         self.state="go3"
+    #         self.temp=5000
+    #     elif(self.temp==0):
+    #         self.state="stop"
+    #     else:
+    #         self.temp=self.temp-1
     
-    def go3(self, result, headpose_result): 
-        if(result=="go4"):
-            self.state="terminate"
-            print("the video is go")
-        elif(self.temp==0):
-            self.state="stop"
-        else:
-            self.temp=self.temp-1
+    # def go3(self, result, headpose_result): 
+    #     if(result=="go4"):
+    #         self.state="terminate"
+    #         print("the video is go")
+    #     elif(self.temp==0):
+    #         self.state="stop"
+    #     else:
+    #         self.temp=self.temp-1
 
     def terminate(self, result, headpose_result):
-        exit(0)
+        exit(1)
         pass
 
     statelist = {
@@ -122,9 +122,9 @@ class StateMachine:
     "left2":left2,
     "right1":right1,
     "right2":right2,
-    "go1":go1,
-    "go2":go2,
-    "go3":go3,
+    # "go1":go1,
+    # "go2":go2,
+    # "go3":go3,
     "terminate":terminate
     }       
     def staterunner(self, result, headpose_result):
@@ -156,11 +156,20 @@ def getangle(point):
     ratio3=round(np.dot(vec4_5,vec4_3)/math.sqrt(np.dot(vec4_5,vec4_5)*np.dot(vec4_3,vec4_3)),10)
     ratio4=round(np.dot(vec3_4,vec3_13)/math.sqrt(np.dot(vec3_4,vec3_4)*np.dot(vec3_13,vec3_13)),10)
 
-    angle[0]=math.acos(ratio1)
-    angle[1]=math.acos(ratio2)
-    angle[2]=math.acos(ratio3)
-    angle[3]=math.acos(ratio4)
+    angle[0]=math.acos(ratio1)*180/(math.pi)
+    angle[1]=math.acos(ratio2)*180/(math.pi)
+    angle[2]=math.acos(ratio3)*180/(math.pi)
+    angle[3]=math.acos(ratio4)*180/(math.pi)
 
+    #added
+    if np.cross(vec1_2,vec1_0)<0:
+        angle[0]=360-angle[0]
+    if np.cross(vec0_1,vec0_13)<0:
+        angle[1]=360-angle[1]
+    if np.cross(vec4_3,vec4_5)<0:
+        angle[2]=360-angle[2]
+    if np.cross(vec3_13,vec3_4)<0:
+        angle[3]=360-angle[3] 
     return angle
 
 def execute(model_path, frames_input_src, output_dir, is_presenter_server):
@@ -191,30 +200,30 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
 
 
     # Read reference images
-    img_go1 = cv2.imread(GO1_PATH)
-    img_go2 = cv2.imread(GO2_PATH)
-    img_go3 = cv2.imread(GO3_PATH)
-    img_go4 = cv2.imread(GO4_PATH)
+    # img_go1 = cv2.imread(GO1_PATH)
+    # img_go2 = cv2.imread(GO2_PATH)
+    # img_go3 = cv2.imread(GO3_PATH)
+    # img_go4 = cv2.imread(GO4_PATH)
     img_left1 = cv2.imread(LEFT1_PATH)
     img_left2 = cv2.imread(LEFT2_PATH)
     img_right1 = cv2.imread(RIGHT1_PATH)
     img_right2 = cv2.imread(RIGHT2_PATH)
     img_stop = cv2.imread(STOP_PATH)
     # Get reference output
-    canvas_go1,joint_list_go1 = model_processor.predict(img_go1)
-    canvas_go2,joint_list_go2 = model_processor.predict(img_go2)
-    canvas_go3,joint_list_go3 = model_processor.predict(img_go3)
-    canvas_go4,joint_list_go4 = model_processor.predict(img_go4)
+    # canvas_go1,joint_list_go1 = model_processor.predict(img_go1)
+    # canvas_go2,joint_list_go2 = model_processor.predict(img_go2)
+    # canvas_go3,joint_list_go3 = model_processor.predict(img_go3)
+    # canvas_go4,joint_list_go4 = model_processor.predict(img_go4)
     canvas_left1,joint_list_left1 = model_processor.predict(img_left1)
     canvas_left2,joint_list_left2 = model_processor.predict(img_left2)
     canvas_right1,joint_list_right1 = model_processor.predict(img_right1)
     canvas_right2,joint_list_right2 = model_processor.predict(img_right2)
     canvas_stop,joint_list_stop = model_processor.predict(img_stop)
     # Get angles from reference images
-    angle_go1=getangle(joint_list_go1)
-    angle_go2=getangle(joint_list_go2)
-    angle_go3=getangle(joint_list_go3)
-    angle_go4=getangle(joint_list_go4)
+    # angle_go1=getangle(joint_list_go1)
+    # angle_go2=getangle(joint_list_go2)
+    # angle_go3=getangle(joint_list_go3)
+    # angle_go4=getangle(joint_list_go4)
     angle_left1=getangle(joint_list_left1)
     angle_left2=getangle(joint_list_left2)
     angle_right1=getangle(joint_list_right1)
@@ -257,6 +266,7 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         # image_byte = img_original.tobytes()
         # image_array = np.frombuffer(image_byte, dtype=np.uint8)
         # img_original_face = YUVtoRGB(image_array)
+        # img_original_face = cv2.flip(img_original_face,1)
 
         img_original_face = img_original
         input_image = PreProcessing_face(img_original_face)
@@ -299,33 +309,57 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         
         angle_input=getangle(joint_list_input)
 
-        dif1=abs(np.sum(angle_input-angle_go1))
-        dif2=abs(np.sum(angle_input-angle_go2))
-        dif3=abs(np.sum(angle_input-angle_go3))
-        dif4=abs(np.sum(angle_input-angle_go4))
-        dif5=abs(np.sum(angle_input-angle_left1))
-        dif6=abs(np.sum(angle_input-angle_left2))
-        dif7=abs(np.sum(angle_input-angle_right1))
-        dif8=abs(np.sum(angle_input-angle_right2))
-        dif9=abs(np.sum(angle_input-angle_stop))
+        # dif1=abs(np.sum(angle_input-angle_go1))
+        # dif2=abs(np.sum(angle_input-angle_go2))
+        # dif3=abs(np.sum(angle_input-angle_go3))
+        # dif4=abs(np.sum(angle_input-angle_go4))
+        dif5=(np.sum(abs(angle_input-angle_left1)))
+        dif6=(np.sum(abs(angle_input-angle_left2)))
+        dif7=(np.sum(abs(angle_input-angle_right1)))
+        dif8=(np.sum(abs(angle_input-angle_right2)))
+        dif9=(np.sum(abs(angle_input-angle_stop)))
 
         
         #list_result=min(dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9)
-        list_result=[dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9]
-        decode_list={
-            0:"go1",
-            1:"go2",
-            2:"go3",
-            3:"go4",
-            4:"left1",
-            5:"left2",
-            6:"right1",
-            7:"right2",
-            8:"stop",
-        }
+        # list_result=[dif1,dif2,dif3,dif4,dif5,dif6,dif7,dif8,dif9]
+        # list_result=[dif5,dif6,dif7,dif8,dif9]
+        pose=min(dif5,dif6,dif7,dif8,dif9)
 
-        result=decode_list[list_result.index(min(list_result))]
+        if pose>50:
+            result='invalid'
+        else:
+            if pose==dif5:
+                result='left1'
+            elif pose==dif6:
+                result='left2'
+            elif pose==dif7:
+                result='right1'
+            elif pose==dif8:
+                result=='right2'
+            elif pose==dif9:
+                result='stop'
+        # decode_list={
+        #     0:"go1",
+        #     1:"go2",
+        #     2:"go3",
+        #     3:"go4",
+        #     4:"left1",
+        #     5:"left2",
+        #     6:"right1",
+        #     7:"right2",
+        #     8:"stop",
+        # }
+        # decode_list={
+        #     0:"left1",
+        #     1:"left2",
+        #     2:"right1",
+        #     3:"right2",
+        #     4:"stop",
+        # }
+
+        # result=decode_list[list_result.index(min(list_result))]
         
+
         resultList.append(result)
         predict.staterunner(result,headpose_result)
         ## Present Result ##
@@ -340,6 +374,8 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         else:
             # save to video
             video_writer.write(canvas_input)
+
+
     print(resultList)
     # release the resources
     cap.release()
