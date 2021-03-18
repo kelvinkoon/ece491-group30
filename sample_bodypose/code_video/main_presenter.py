@@ -227,12 +227,13 @@ def execute(model_path):
         
         angle_input=getangle(joint_list_input)
 
-        dif5=abs(np.sum(angle_input-angle_left1))
-        dif6=abs(np.sum(angle_input-angle_left2))
-        dif7=abs(np.sum(angle_input-angle_right1))
-        dif8=abs(np.sum(angle_input-angle_right2))
-        dif9=abs(np.sum(angle_input-angle_stop))
 
+        dif5=(np.sum(abs(angle_input-angle_left1)))
+        dif6=(np.sum(abs(angle_input-angle_left2)))
+        dif7=(np.sum(abs(angle_input-angle_right1)))
+        dif8=(np.sum(abs(angle_input-angle_right2)))
+        dif9=(np.sum(abs(angle_input-angle_stop)))
+        
         pose=min(dif5,dif6,dif7,dif8,dif9)
 
         result = "invalid"
