@@ -1,4 +1,3 @@
-import random
 import os
 import cv2
 import numpy as np
@@ -23,7 +22,6 @@ MODEL_PATH_FACE = 'face_detection.om'
 CAMERA_FRAME_WIDTH = 1280
 CAMERA_FRAME_HEIGHT = 720
 
-DATA_PATH = '../test_video/turn_right.mp4'
 LEFT1_PATH = '../reference_pose/left1.jpg'
 LEFT2_PATH = '../reference_pose/left2.jpg'
 RIGHT1_PATH = '../reference_pose/right1.jpg'
@@ -37,19 +35,13 @@ class StateMachine:
         self.temp=5000
 
         ## UART BEGIN
-        # self.conn = uart.UART()
-        # self.conn.open()
-
-        # ## FUNCTIONS
-        # self.conn.send_left()
-        # self.conn.send_right()
-        # self.conn.send_stop()
-        ## UART END
+        self.conn = uart.UART()
+        self.conn.open()
 
     def idle(self, result, headpose_result):
         print(headpose_result)
         # if True:
-        if headpose_result == "Head turn left slightly":
+        if headpose_result == "Head facing camera":
             self.state="stop"
             self.temp=5000
         else:
@@ -57,6 +49,7 @@ class StateMachine:
     
     def stop(self, result, headpose_result):
         if(result=="stop"):
+            self.conn.send_stop()
             print("the video is stop")
         elif(result=="left1"):
             self.state="left1"
@@ -75,6 +68,7 @@ class StateMachine:
     
     def left2(self, result, headpose_result):
             self.state="terminate"
+            self.conn.send_left()
             print("the video is going left2")
 
     def right1(self, result, headpose_result):
@@ -87,6 +81,7 @@ class StateMachine:
     
     def right2(self, result, headpose_result):
         self.state="terminate"
+        self.conn.send_right()
         print("the video is going right2")
             
     def terminate(self, result, headpose_result):
@@ -148,7 +143,7 @@ def getangle(point):
         angle[3]=360-angle[3] 
     return angle
 
-def execute(model_path, frames_input_src, output_dir, is_presenter_server):
+def execute(model_path):
 
     ## Initialization ##
     #initialize acl runtime 
@@ -169,10 +164,7 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
     # perpare model instance: init (loading model from file to memory)
     # model_processor: preprocessing + model inference + postprocessing
     model_processor = ModelProcessor(acl_resource, model_parameters)
-    resultList=[]
-    ## Get Input ##
-    # Read the video input using OpenCV
-    # cap = cv2.VideoCapture(frames_input_src)
+    last_five_frame_result = [] 
 
     # Initialize Camera
     cap = Camera(id = 0, fps = 10)
@@ -200,15 +192,13 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
     countright=0
     countstop=0
 
-    ## Set Output ##
-    if is_presenter_server:
-        # if using presenter server, then open the presenter channel
-        chan = presenteragent.presenter_channel.open_channel(BODYPOSE_CONF)
-        if chan == None:
-            print("Open presenter channel failed")
-            return
+    ## Presenter Server Output ##
+    chan = presenteragent.presenter_channel.open_channel(BODYPOSE_CONF)
+    if chan == None:
+        print("Open presenter channel failed")
+        return
 
-    predict=StateMachine()
+    predict = StateMachine()
 
     while True:
         ## Read one frame of the input video ## 
@@ -218,18 +208,22 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
             print('Error: Camera read failed')
             break
 
-        ## HEAD POSE BEGIN
-
+        ## HEAD POSE BEGIN ##
         # Camera Input (YUV) to RGB Image
         image_byte = img_original.tobytes()
-        image_array = np.frombuffer(image_byte, dtype=np.uint8)
+        image_array = np.frombuffer(image_byte, dtype=np.uint8) 
         img_original = YUVtoRGB(image_array)
-        img_original2 = copy.copy(img_original)
+        img_original = cv2.flip(img_original, -1)
+        
+        # Make copy of image for head model processing and body model processing 
+        img_bodypose = copy.deepcopy(img_original)
+        img_headpose = copy.deepcopy(img_original)
         
         ## Model Prediction ##
         # model_processor.predict: processing + model inference + postprocessing
         # canvas: the picture overlayed with human body joints and limbs
-        img_bodypose, joint_list_input = model_processor.predict(img_original)
+        # img_bodypose is modified with skeleton
+        canvas, joint_list_input = model_processor.predict(img_bodypose)
         
         angle_input=getangle(joint_list_input)
 
@@ -242,6 +236,7 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
         pose=min(dif5,dif6,dif7,dif8,dif9)
 
         result = "invalid"
+        last_five_result = "invalid"
         if pose < 50:
             if pose==dif5:
                 result = "left1"
@@ -254,13 +249,20 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
             elif pose==dif9:
                 result = "stop"
 
+        last_five_frame_result.append(result)
+        if len(last_five_frame_result) > 5:
+            last_five_frame_result.pop(0)
+        if (len(set(last_five_frame_result)) == 1) and (len(last_five_frame_result) == 5):
+                last_five_result = last_five_frame_result[0]
+            
+        
         font                   = cv2.FONT_HERSHEY_SIMPLEX
         bottomLeftCornerOfText = (10, 100)
         fontScale              = 1
         fontColor              = (255,255,255)
         lineType               = 2
 
-        cv2.putText(img_bodypose, result, 
+        cv2.putText(img_bodypose, last_five_result, 
             bottomLeftCornerOfText, 
             font, 
             fontScale,
@@ -268,54 +270,45 @@ def execute(model_path, frames_input_src, output_dir, is_presenter_server):
             lineType)
     
 
-        resultList.append(result)
-
-        ## HEADPOSE BEGIN
-        input_image = PreProcessing_face(img_original2)
+        ## FACE DETECTION MODEL BEGIN ##
+        input_image = PreProcessing_face(img_headpose)
 
         face_flag = False
-        #face model inference and post processing
         try:
             resultList_face  = model_face.execute([input_image]).copy()
+            # draw bounding box on img_bodypose
             xmin, ymin, xmax, ymax = PostProcessing_face(img_bodypose, resultList_face)
             bbox_list = [xmin, ymin, xmax, ymax]
             face_flag = True
         except:
             print('No face detected')
-            
+        # FACE DETECTION MODEL END ##
+
+        ## HEADPOSE BEGIN ##
         head_status_string = "No output"
         if face_flag is True:
-            # # Preprocessing head pose estimation
-            input_image = PreProcessing_head(img_original2, bbox_list)
-            # head pose estimation model inference
+            input_image = PreProcessing_head(img_headpose, bbox_list)
             try: 
                 resultList_head = model_head_pose.execute([input_image]).copy()	
             except Exception as e:
                 print('No head pose estimation output')
 
-            #post processing to obtain coordinates for lines drawing
-            facepointList, head_status_string, img_headpose = PostProcessing_head(resultList_head, bbox_list, img_bodypose)
-            # print('Head angles:', resultList_head[2])
-            print('Pose:', head_status_string)
-        else:
-            img_headpose = img_bodypose
+            # draw headpose points on image
+            facepointList, head_status_string, canvas = PostProcessing_head(resultList_head, bbox_list, img_bodypose)
+            print('Headpose:', head_status_string)
 
         headpose_result = head_status_string
-
-        ## HEAD POSE END
+        ## HEADPOSE END ##
 
         predict.staterunner(result,headpose_result)
         ## Present Result ##
-        if is_presenter_server:
-            # convert to jpeg image for presenter server display
-            _,jpeg_image = cv2.imencode('.jpg', img_headpose)
-            # construct AclImage object for presenter server
-            jpeg_image = AclImage(jpeg_image, img_original.shape[0], img_original.shape[1], jpeg_image.size)
-            # send to presenter server
-            chan.send_detection_data(img_original.shape[0], img_original.shape[1], jpeg_image, [])
+        # convert to jpeg image for presenter server display
+        _,jpeg_image = cv2.imencode('.jpg', img_bodypose)
+        # construct AclImage object for presenter server
+        jpeg_image = AclImage(jpeg_image, img_original.shape[0], img_original.shape[1], jpeg_image.size)
+        # send to presenter server
+        chan.send_detection_data(img_original.shape[0], img_original.shape[1], jpeg_image, [])
 
-    print(resultList)
-    # release the resources
     cap.release()
 
 
@@ -369,7 +362,7 @@ def PostProcessing_face(image, resultList, threshold=0.9):
             cv2.rectangle(image,(xmin,ymin),(xmax,ymax),(0,255,0),1)
         else:
             continue
-    print("detected bbox num:", bbox_num)
+    #print("detected bbox num:", bbox_num)
     return [xmin, ymin, xmax, ymax]
 
 
@@ -425,7 +418,7 @@ def head_status_get(resultList):
     else:
         fg_roll = False
     if fg_pitch is False and fg_yaw is False and fg_roll is False:
-        head_status_string = head_status_string + " Good posture"
+        head_status_string = head_status_string + " facing camera"
     return head_status_string
 
 def PostProcessing_head(resultList, boxList, image):
@@ -472,11 +465,6 @@ if __name__ == '__main__':
     description = 'Load a model for human pose estimation'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--model', type=str, default=MODEL_PATH)
-    parser.add_argument('--frames_input_src', type=str,default=DATA_PATH, help="Directory path for video.")
-    parser.add_argument('--output_dir', type=str, default='./outputs', help="Output Path")
-    parser.add_argument('--is_presenter_server', type=bool, default=True, help="Display on presenter server or save to a video mp4 file (T/F)")
     args = parser.parse_args()
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
 
-    execute(args.model, args.frames_input_src, args.output_dir, args.is_presenter_server)
+    execute(args.model)
