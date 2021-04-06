@@ -12,6 +12,7 @@ In the server/PC, clone or download the project repository:
 
 ```
 git clone https://github.com/Atlas200dk/sample_bodypose.git
+```
 
   
 ## Environment Preparation<a name="zh-cn_topic_0228757083_section17595135641"></a> 
