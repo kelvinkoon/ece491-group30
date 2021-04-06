@@ -2,24 +2,7 @@
 
 This application runs on Atlas 200 DK. It uses three models: face detection, head pose estimation, and body pose estimation. 
 
-The body pose model is a simplified version for edge computing, based on the model [here](https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch). It directly outputs the predicted locations of the human body joints. The set of 14 detected joints are shown in the diagram below:
-
-                     12                     0-right shoulder, 1-right elbow, 2-right wrist, 3-left shoulder
-                     |                      4-left elbow, 5-left wrist, 6-right hip, 7-right knee, 8-right ankle
-                     |                      9-left hip, 10-left knee, 11-left ankle, 12-top of the head, 13-neck
-               0-----13-----3
-              /     / \      \
-             1     /   \      4
-            /     /     \      \
-           2     6       9      5
-                 |       |
-                 7       10
-                 |       |
-                 8       11
-
-    
-**Performance:** The inference time of running the model on Atlas 200 DK is about 17 ms per image/frame .  
-**Limitation:** The model works well when there is only one persion and with whole body clearly shown in the view.
+See model/README.md for steps to download the models and convert to offline model format. 
 
 ## Software Preparation<a name="zh-cn_topic_0228757083_section17595135641"></a> 
 

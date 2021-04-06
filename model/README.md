@@ -28,7 +28,6 @@ Download the weights and network files to the models directory.
 --model="face_detection.prototxt"
 ```
 
-
 2. Head Pose Estimation
 
 Download the weights and network files to the models directory.
@@ -37,16 +36,12 @@ Download the weights and network files to the models directory.
 https://obs-model-ascend.obs.cn-east-2.myhuaweicloud.com/head_pose_estimation/head_pose_estimation.caffemodel
 - Network: https://raw.githubusercontent.com/Ascend-Huawei/models/master/computer_vision/object_detect/head_pose_estimation/head_pose_estimation.prototxt
 
-**Note:** To download the Netowrk file with **wget**, please use following
-
-**wget https://raw.githubusercontent.com/Ascend-Huawei/models/master/computer_vision/object_detect/head_pose_estimation/head_pose_estimation.prototxt**
-
 Execute the following command from your project directory 'head_pose_estimation/src' to convert the pre-trained model for head pose estimation to offline model (.om) format:
 
 **atc --output_type=FP32 --input_shape="data:1,3,224,224" --weight="head_pose_estimation.caffemodel" --input_format=NCHW --output="head_pose_estimation"
 --soc_version=Ascend310 --framework=0 --save_original_model=false --model="head_pose_estimation.prototxt"**
 
-
+## Face Detection and Head Pose Estimation Models
 #### Inputs
 The input for face detection model are as follows:
 - **Input Shape**: [1,300,300, 3]
@@ -59,7 +54,6 @@ The input for the head pose estimation model are as follows:
 - **Input Type**: BGR FLOAT32
 
 #### Outputs
-
 Outputs for the face detection model:
 
 - 2 lists. Only the 2nd list is used.
@@ -85,32 +79,27 @@ Output printed to terminal (sample):
 Head angles: [array([[9.411621]], dtype=float32), array([[7.91626]], dtype=float32), array([[-1.0116577]], dtype=float32)]
 Pose: Head Good posture
 ```
-Result image with 64 keypoints plotted on detected face saved in 'out' folder.
 
-  
-## Code:
 
-  - All code files needed to run the experiment are included in folder 'head_pose_estimation/src'. The script 'head_pose_estimation.py' contains all the preprocessing, model inference and post_processing methods. 
-  - Preprocessing: 
-    - **Resize**: (224, 224)
-    - **Image Type**: FLOAT32
-    - **Input Format** : NCHW
-    - Change order from **[300, 300, 3]**(HWC) to **[3, 300, 300]**(CHW)
-    - 
-  - The om model file (.om) must be downloaded to the project folder 'head_pose_estimation/src'
- 
-  - Postprocessing:
-    - Infer head pose from yaw, pitch and roll angles, using fixed range thresholds.
+## Body Pose Estimation
+The body pose model is a simplified version for edge computing, based on the model [here](https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch). It directly outputs the predicted locations of the human body joints. The set of 14 detected joints are shown in the diagram below:
+
+                     12                     0-right shoulder, 1-right elbow, 2-right wrist, 3-left shoulder
+                     |                      4-left elbow, 5-left wrist, 6-right hip, 7-right knee, 8-right ankle
+                     |                      9-left hip, 10-left knee, 11-left ankle, 12-top of the head, 13-neck
+               0-----13-----3
+              /     / \      \
+             1     /   \      4
+            /     /     \      \
+           2     6       9      5
+                 |       |
+                 7       10
+                 |       |
+                 8       11
 
     
-  - To run code， simply using commands below in the terminal:
-  
-    ``` 
-    cd head_pose_estimation/src
-    python3 head_pose_estimation.py 
-    ``` 
-
-
+**Performance:** The inference time of running the model on Atlas 200 DK is about 17 ms per image/frame .  
+**Limitation:** The model works well when there is only one persion and with whole body clearly shown in the view.
 
 
 
