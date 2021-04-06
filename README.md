@@ -98,36 +98,23 @@ You may first run the application, if there is any error about missing dependenc
 
 ## Running the Application
 
-1. Log in to the development board. Navigate to the code directory corresponding to the required input source format (image, video or live camera), and execute one of the following commands to run the application according to the input source format. 
+1. Make sure the presenter server is running on the server side. In the project main directory run the following:
+    ```
+    bash run_presenter_server.sh &
+    ```
 
-    **NOTE**: To execute it, you could use the default input (just run **python3 main.py** without parameter), or input parameters as below for input/output paths and model path as indicated in **main.py**. For the video input, you also have the option to save the output as a video or display to presenter server, with the value in parameter 'is_presenter_server' set to False or True, respectively .
 
-    *Image input source*: 
 
-    **cd ~/HIAI_PROJECTS/sample_bodypose/code_image**   
-    **python3 main.py --model='model/body_pose.om' --frames_input_src='tennis_player.jpg' --output_dir='outputs'**
-
-    *Video input source (output video)*:
-
-    **cd ~/HIAI_PROJECTS/sample_bodypose/code_video**   
-    **python3 main.py --model='model/body_pose.om' --frames_input_src='yoga.mp4' --output_dir='outputs' --is_presenter_server=False**
-
-    Video input source (output streamed to presenter server)*:
-
-    **cd ~/HIAI_PROJECTS/sample_bodypose/code_video**   
-    **python3 main.py --model='model/body_pose.om' --frames_input_src='yoga.mp4' --output_dir='outputs' --is_presenter_server=True**
-
-    *Live camera source*:
-
-    **cd ~/HIAI_PROJECTS/sample_bodypose/code_live**   
-    **python3 main.py --model='model/body_pose.om'**
+2. On the development board, navigate to the code directory and run:
+    ```
+    python3 main.py
+    ```
     
     **Note**, for the live camera case, the "CAMERA0" camera is used by default. Please refer to the link below for the viewing method.   
    https://support.huaweicloud.com/usermanual-A200dk_3000/atlas200dk_02_0051.html 
    
-   The sample video originates from https://www.pexels.com/video/woman-stretching-near-a-cliff-854370
 
-2.  If you need to view the detection results using presenter server for the live input or video source, log in to the Presenter Server website using the URL that was prompted when the Presenter Server service was started. Otherwise, skip this step.
+3.  Go to the Presenter Server website using the URL that was prompted when the Presenter Server service was started. 
 
     Wait for the Presenter Agent to transmit data to the server, and click "Refresh" to refresh. When there is data, the status of the corresponding Channel turns green, as shown in the figure below.
 
