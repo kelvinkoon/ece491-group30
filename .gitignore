@@ -1,4 +1,4 @@
-head_pose_estimation/*om
+*om
 *.caffemodel
 *__pycache__/
 *kernel_meta/

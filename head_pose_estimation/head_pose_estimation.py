@@ -54,8 +54,7 @@ def execute():
         image_byte = img_original.tobytes()
         image_array = np.frombuffer(image_byte, dtype=np.uint8)
         img_original = YUVtoRGB(image_array)
-        img_original = cv2.flip(img_original,1)
-
+        img_original = cv2.flip(img_original,-1)
         input_image = PreProcessing_face(img_original)
 
         face_flag = False
