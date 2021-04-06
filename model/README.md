@@ -38,8 +38,10 @@ https://obs-model-ascend.obs.cn-east-2.myhuaweicloud.com/head_pose_estimation/he
 
 Execute the following command from your project directory 'head_pose_estimation/src' to convert the pre-trained model for head pose estimation to offline model (.om) format:
 
-**atc --output_type=FP32 --input_shape="data:1,3,224,224" --weight="head_pose_estimation.caffemodel" --input_format=NCHW --output="head_pose_estimation"
---soc_version=Ascend310 --framework=0 --save_original_model=false --model="head_pose_estimation.prototxt"**
+```
+atc --output_type=FP32 --input_shape="data:1,3,224,224" --weight="head_pose_estimation.caffemodel" --input_format=NCHW --output="head_pose_estimation"
+--soc_version=Ascend310 --framework=0 --save_original_model=false --model="head_pose_estimation.prototxt"
+```
 
 ## Face Detection and Head Pose Estimation Models
 #### Inputs

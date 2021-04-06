@@ -10,15 +10,8 @@ See model/README.md for steps to download the models and convert to offline mode
 
 In the server/PC, clone or download the project repository:
 
-**mkdir -p $HOME/AscendProjects**
-
-**cd $HOME/AscendProjects**  
-
-**git clone https://github.com/Atlas200dk/sample_bodypose.git**
-
-OR
-
-**wget https://github.com/Atlas200dk/sample_bodypose.git**   
+```
+git clone https://github.com/Atlas200dk/sample_bodypose.git
 
   
 ## Environment Preparation<a name="zh-cn_topic_0228757083_section17595135641"></a> 
@@ -28,9 +21,7 @@ You may first run the application, if there is any error about missing dependenc
 
 ## Environment Deployment<a name="zh-cn_topic_0228757083_section1759513564117"></a>  
 
-1.  Go to the directory where the application code is located, such as: $HOME/AscendProjects/sample_bodypose/. 
-     
-    **cd $HOME/AscendProjects/sample_bodypose/** 
+1.  Go to the project directory.
 
 2.  Modify the configuration file, if you need to view the detection results using presenter server for the live input or video source.  
 
@@ -43,7 +34,6 @@ You may first run the application, if there is any error about missing dependenc
     **presenter\_view\_ip=192.168.1.223**
 
     **presenter\_agent\_ip=192.168.1.2**
-
     
     Generally, when connecting via USB, atlas200dk\_board\_ip is the USB network port ip of the development board, and the default is 192.168.1.2. When connecting through a network port, atlas200dk\_board\_ip is the network port ip of the development board, and the default is 192.168.0.2.
 
@@ -51,9 +41,11 @@ You may first run the application, if there is any error about missing dependenc
    
     Navigate to the directory where the sample_bodypose application code is located, such as: AscendProjects/sample_bodypose, execute the following command to copy the application code to the development board. If the copy fails, please check if there is a directory HIAI\_PROJECTS on the development board, and if not, create it.
 
-    **scp -r ~/AscendProjects/sample_bodypose HwHiAiUser@192.168.1.2:/home/HwHiAiUser/HIAI\_PROJECTS**
+    ```
+    scp -r ~/AscendProjects/sample_bodypose HwHiAiUser@192.168.1.2:/home/HwHiAiUser/HIAI\_PROJECTS
+    ```
 
-    Enter the development board password when prompted for password. The default password of the development board is **Mind@123**
+    Enter the development board password when prompted for password. The default password of the development board is `Mind@123`
 
     
 4.  Start Presenter Server, if you need to view the detection results using presenter server for the live input or video source, otherwise, skip this step.
