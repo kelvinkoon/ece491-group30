@@ -1,8 +1,8 @@
-# Body Pose Detection \(Python)
+# Automated Traffic Controller (Python)
 
-This application runs on Atlas 200 DK, to infer human body poses. For more information on the original Lightweight OpenPose model, please refer to [link](https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch), an open-source pose detection network. This application can be run on various input formats, namely image input, video input as well as live camera input. 
+This application runs on Atlas 200 DK. It uses three models: face detection, head pose estimation, and body pose estimation. 
 
-In this repository, the model is a simplied version for edge computing, and it directly outputs the predicted locations of the human body joints. The set of 14 detected joints are shown in the diagram below:
+The body pose model is a simplified version for edge computing, based on the model [here](https://github.com/Daniil-Osokin/lightweight-human-pose-estimation.pytorch). It directly outputs the predicted locations of the human body joints. The set of 14 detected joints are shown in the diagram below:
 
                      12                     0-right shoulder, 1-right elbow, 2-right wrist, 3-left shoulder
                      |                      4-left elbow, 5-left wrist, 6-right hip, 7-right knee, 8-right ankle
@@ -18,14 +18,6 @@ In this repository, the model is a simplied version for edge computing, and it d
                  8       11
 
     
-
-The figure below shows the sample output on a single image input. The detected pose is displayed in the form of a skeleton overlay on the image.
-
-**Figure**  Body pose detection result<a name="zh-cn_topic_0228757088_fig64391558352"></a>  
-    <img src="figures/pose_detected.jpg" width="350">
-
-Original image from https://www.pexels.com/photo/man-playing-tennis-1407818/
-
 **Performance:** The inference time of running the model on Atlas 200 DK is about 17 ms per image/frame .  
 **Limitation:** The model works well when there is only one persion and with whole body clearly shown in the view.
 
