@@ -132,7 +132,7 @@ def getangle(point):
     angle[2]=math.acos(ratio3)*180/(math.pi)
     angle[3]=math.acos(ratio4)*180/(math.pi)
 
-    #added
+    #adjust the range of angle from pi to 2pi
     if np.cross(vec1_2,vec1_0)<0:
         angle[0]=360-angle[0]
     if np.cross(vec0_1,vec0_13)<0:
