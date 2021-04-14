@@ -245,28 +245,7 @@ def execute(model_path):
         elif all( i < 25 for i in dif8):
             result = "right2"
         elif all( i < 25 for i in dif9):
-            result = "stop"
-
-
-    #    pose=min(dif5,dif6,dif7,dif8,dif9)
-    #    if pose < 70:
-    #        if pose==dif5:
-    #            result = "left1"
-    #        elif pose==dif6:
-    #            result = "left2"
-    #        elif pose==dif7:
-    #            result = "right1"
-    #        elif pose==dif8:
-    #            result = "right2"
-    #        elif pose==dif9:
-    #            result = "stop"
-
-        # last_five_frame_result.append(result)       
-        # if len(last_five_frame_result) > 5:
-        #     last_five_frame_result.pop(0)
-        # if (len(set(last_five_frame_result)) == 1) and (len(last_five_frame_result) == 5):
-        #         last_five_result = last_five_frame_result[0]
-            
+            result = "stop"            
         
         font                   = cv2.FONT_HERSHEY_SIMPLEX
         bottomLeftCornerOfText = (10, 100)

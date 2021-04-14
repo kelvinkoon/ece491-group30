@@ -1,24 +1,88 @@
-# Automated Traffic Controller (Python)
+# Automated Traffic Police Signal Recognition System 
 
-This application runs on Atlas 200 DK. It uses three models: face detection, head pose estimation, and body pose estimation. 
+## Capstone Team Information
+The Automated Traffic Police Signal Recognition System is Team 30's project sponsored by Huawei Technologies.
+
+### Team Members
+- Vincent Chua
+- Tiancheng Feng
+- Kelvin Koon
+- Richard Wang
+- Hongrong Zhang
+
+
+This application runs on the Atlas 200 DK (Linux Ubuntu system). It uses three models: face detection, head pose estimation, and body pose estimation. 
+
+
+## Hardware Setup
+- Huawei Atlas 200 DK board, type IT21DMDA (Linux Ubuntu system)
+- Raspberry Pi Camera
+- ELEGOO Smart Robot Car Kit V3.0 (contains Arduino Uno R3)
+- Ethernet cable for Internet connection
+- Jumper wires 
+- Power supply (12V,3A)
+
+1. Power the Atlas 200 DK board and attach the ethernet cable to provide Internet connection.
+2. Attach the Raspberry Pi Camera to the board. See this [link](https://support.huaweicloud.com/intl/en-us/qs-atlas200dkappc32/atlased_04_0006.html) for instructions on attaching.
+3. Set up the ELEGOO Smart Car according to its instruction manual. 
+4. Follow the Wired Connections section below 
+```
+A UART connection is required to send messages from the Atlas board to the Arduino. This connection is unidirectional. 
+- Connect Atlas board Tx (pin 16) to Arduino Rx. This sets up the connection to send from Atlas to Arduino.
+- Connect Atlas GND to Arduino GND. 
+```
+
+## Related Works
+Huawei's Ascend platform is open-source. As such, these Github repositories were used as examples to follow:
+- Huawei's Head Pose Estimation model ([source])(https://github.com/Atlas200dk/sample-headposeestimation)
+- Huawei's Body Pose Estimation model ([source](https://github.com/Atlas200dk/sample_bodypose))
+
+## Software Dependencies
+### Deep Learning Models
+The deep learning models provided by Huawei are all pre-trained using the [Caffe](https://caffe.berkeleyvision.org/) framework. These pre-trained models must be converted to Huawei's offline model (.om) format to use. 
+- Head Pose Estimation model
+- Body Pose Estimation model
 
 See model/README.md for steps to download the models and convert to offline model format. 
 
-## Software Preparation<a name="zh-cn_topic_0228757083_section17595135641"></a> 
-
-**Note,** The following setup is for the scenario where you have a ubuntu server/PC and Atlas 200 DK setup as [official guide](https://support.huaweicloud.com/intl/en-us/productdesc-A200dk_3000/atlas200_DK_pdes_19_0007.html), and Atlas 200 DK is connected directly with the server/PC with USB or network cable. 
-
-In the server/PC, clone or download the project repository:
-
+### Libraries 
+To install the Python 3 operating environment required, please follow Huawei's [guide](https://github.com/Huawei-Ascend/samples/blob/master/python/environment/python_ENV/README_200DK_EN.md) for the Ascend 200 DK. The dependencies needed are as follows:
 ```
-git clone https://github.com/Atlas200dk/sample_bodypose.git
+OpenCV-Python3
+FFmpeg
+Cython
+numpy
+pillow (5.1.0)
+libtiff5-dev
+libjpeg8-dev
+zlib1g-dev
+libfreetype6-dev
+liblcms2-dev
+libwebp-dev
+tcl8.6-dev
+tk8.6-dev
+python-tk
+pyserial
+tornado 
+protobuf 
 ```
 
-  
+**Note,** The following setup is for the scenario where you have a Ubuntu server/PC and Atlas 200 DK setup as [official guide](https://support.huaweicloud.com/intl/en-us/productdesc-A200dk_3000/atlas200_DK_pdes_19_0007.html), and Atlas 200 DK is connected directly with the server/PC with USB or network cable. 
+
+On the server/PC, clone or download the project repository.
+
+## Programming Language
+The entirety of the project was written using Python3 for the Ascend board and ArduinoC for the Arduino microcontroller. Python and C++ are both compatible with the Ascend platform. The simpler syntax of Python was preferred to allow for faster prototyping. Furthermore, the example code in the open-source repository was mostly in Python, which made it easier to follow. The Arduino microcontroller is built off of Arduino C, making it the best choice. All code written by our team is located in the `code` folder. 
+- State Machine: Dictated what the RC car should do at each step of the intersection
+- Deep Learning Models: Allowed interfacing with the deep learning models using the Ascend board's API
+- Serial Communication: Established communication between the Ascend board and Arduino micronctonroller
+- Motor Control: Facilitated using pre-built Arduino library to move the car
+
 ## Environment Preparation<a name="zh-cn_topic_0228757083_section17595135641"></a> 
 Make sure required libraries for Python3 environment (OpenCV, Numpy, PresentAgent and other dependencies) have been installed on Atlas 200 DK.
 You may first run the application, if there is any error about missing dependency, please refer to https://github.com/Huawei-Ascend/samples/tree/master/common and install.
-   
+
+The operating system used for development on the Atlas 200 DK is Ubuntu 18.04. By SSH'ing into the board, one can simply edit using an editor such as Vim. Alternatively, you can use Visual Studio Code to do a remote login with the board, which will handle the SSH connection for you.
 
 ## Environment Deployment<a name="zh-cn_topic_0228757083_section1759513564117"></a>  
 
@@ -147,3 +211,14 @@ If the presenter server is being used for display, stop
 
 
     **kill -9** _9650_
+
+## Known Bugs and Issues
+Due to the time-constrained nature of the course and COVID-19 restrictions, the team was unable to properly address the following fully. These are the known bugs and issues as of submission and recommended fixes.
+- Gesture classification state machine does not loop (fixed by adding a restart condition to the state machine)
+- Stopping in front of an obstacle (fixed by implementing sonar sensor obstacle detection (code included in ELEGOO sample code))
+- RC car driving issues due to weight (requires a platform on the RC car to hold the additional power bank and board components)
+
+## Future Work
+The following are additional features which may be added for future work done on the project
+- Custom trained models for better gesture classification
+- Additional sensors for improved intersection navigation
