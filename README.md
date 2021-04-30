@@ -26,14 +26,15 @@ The overall sequence to start the application is:
 - Run Application
 - Begin performing gesture in front of RC Car
 
+The capstone video demonstration can be found [here](https://www.youtube.com/watch?v=mW9Bn993z3k).[
 
 ## Hardware Setup
-- Huawei Atlas 200 DK board, type IT21DMDA (Linux Ubuntu system)
-- Raspberry Pi Camera
-- ELEGOO Smart Robot Car Kit V3.0 (contains Arduino Uno R3)
+- [Huawei Atlas 200 DK board, type IT21DMDA (Linux Ubuntu system)](https://e.huawei.com/en/products/cloud-computing-dc/atlas/atlas-200)
+- [Raspberry Pi Camera](https://www.raspberrypi.org/products/camera-module-v2/)
+- [ELEGOO Smart Robot Car Kit V3.0 (contains Arduino Uno R3)](https://www.elegoo.com/products/elegoo-smart-robot-car-kit-v-3-0-plus)
 - Ethernet cable for Internet connection
 - Jumper wires 
-- Power supply (12V,3A)
+- Power supply (12V,3A). [Recommended powerbank](https://www.amazon.ca/Krisdonia-25000mAh-Portable-External-Macbooks/dp/B076GYGR6M/ref=sr_1_7?dchild=1&keywords=laptop%2Bpower%2Bbank&qid=1615936374&sr=8-7&th=1).
 
 1. Power the Atlas 200 DK board and attach the ethernet cable to provide Internet connection.
 2. Attach the Raspberry Pi Camera to the board. See this [link](https://support.huaweicloud.com/intl/en-us/qs-atlas200dkappc32/atlased_04_0006.html) for instructions on attaching.
