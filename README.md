@@ -11,7 +11,20 @@ The Automated Traffic Police Signal Recognition System is Team 30's project spon
 - Hongrong Zhang
 
 
-This application runs on the Atlas 200 DK (Linux Ubuntu system). It uses three models: face detection, head pose estimation, and body pose estimation. 
+## Project Overview
+
+This application runs on the Atlas 200 DK Board, which runs Ubuntu Linux. This project demonstrates the ability to control an RC Car by performing gestures in front of the car. The Atlas 200 DK board runs the machine learning models and detects the specific gesture based on reference images (see reference_poses directory for the reference images). In total, the application can detect stop, turn left, and turn right instruction. 
+
+The Atlas board communicates with an Arduino using UART communication, and after receiving an instruction, the Arduino controls the motors of the RC Car accordingly. 
+
+The overall sequence to start the application is:
+- Hardware Setup
+- Models Setup
+- Flash src/sketch_rccar/sketch_rccar.ino to the Arduino on the ELEGOO RC Car
+- Environment Setup on Atlas board
+- Presenter Server Setup
+- Run Application
+- Begin performing gesture in front of RC Car
 
 
 ## Hardware Setup
@@ -29,7 +42,7 @@ This application runs on the Atlas 200 DK (Linux Ubuntu system). It uses three m
 - Connect Atlas board Tx (pin 16) to Arduino Rx. This sets up the connection to send from Atlas to Arduino.
 - Connect Atlas GND to Arduino GND. 
 
-# Models
+## Models Setup
 This project uses three models
 - Body Pose Estimation (included in repo)
 - Face Detection 
@@ -43,7 +56,7 @@ Huawei's Ascend platform is open-source. As such, these Github repositories were
 - [Huawei's Head Pose Estimation model](https://github.com/Atlas200dk/sample-headposeestimation)
 - [Huawei's Body Pose Estimation model](https://github.com/Atlas200dk/sample_bodypose)
 
-## Software Dependencies
+## Prepare Environment
 ### Libraries 
 To install the Python 3 operating environment required, please follow Huawei's [guide](https://github.com/Huawei-Ascend/samples/blob/master/python/environment/python_ENV/README_200DK_EN.md) for the Ascend 200 DK. The dependencies needed are as follows:
 ```
@@ -70,7 +83,7 @@ protobuf
 
 On the server/PC, clone or download the project repository.
 
-## Programming Language
+### Programming Language
 The entirety of the project was written using Python3 for the Ascend board and ArduinoC for the Arduino microcontroller. Python and C++ are both compatible with the Ascend platform. The simpler syntax of Python was preferred to allow for faster prototyping. Furthermore, the example code in the open-source repository was mostly in Python, which made it easier to follow. The Arduino microcontroller is built off of Arduino C, making it the best choice. All code written by our team is located in the `code` folder. 
 - State Machine: Dictated what the RC car should do at each step of the intersection
 - Deep Learning Models: Allowed interfacing with the deep learning models using the Ascend board's API
@@ -83,7 +96,7 @@ You may first run the application, if there is any error about missing dependenc
 
 The operating system used for development on the Atlas 200 DK is Ubuntu 18.04. By SSH'ing into the board, one can simply edit using an editor such as Vim. Alternatively, you can use Visual Studio Code to do a remote login with the board, which will handle the SSH connection for you.
 
-## Environment Deployment<a name="zh-cn_topic_0228757083_section1759513564117"></a>  
+## Presenter Server Setup
 
 1.  Go to the project directory.
 
@@ -106,7 +119,7 @@ The operating system used for development on the Atlas 200 DK is Ubuntu 18.04. B
     Navigate to the directory where the sample_bodypose application code is located, such as: AscendProjects/sample_bodypose, execute the following command to copy the application code to the development board. If the copy fails, please check if there is a directory HIAI\_PROJECTS on the development board, and if not, create it.
 
     ```
-    scp -r ~/AscendProjects/sample_bodypose HwHiAiUser@192.168.1.2:/home/HwHiAiUser/HIAI\_PROJECTS
+    scp -r ~/AscendProjects/<project-name> HwHiAiUser@192.168.1.2:/home/HwHiAiUser/HIAI\_PROJECTS
     ```
 
     Enter the development board password when prompted for password. The default password of the development board is `Mind@123`
@@ -159,13 +172,12 @@ The operating system used for development on the Atlas 200 DK is Ubuntu 18.04. B
     **source ~/.bashrc**  
 
 
-## Running the Application
+## Run Application
 
 1. Make sure the presenter server is running on the server side. In the project main directory run the following:
     ```
     bash run_presenter_server.sh &
     ```
-
 
 
 2. On the development board, navigate to the code directory and run:
