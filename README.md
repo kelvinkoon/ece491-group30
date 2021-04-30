@@ -3,6 +3,8 @@
 ## Capstone Team Information
 The Automated Traffic Police Signal Recognition System is Team 30's project sponsored by Huawei Technologies.
 
+![final product](img/final_product.png)
+
 ### Team Members
 - Vincent Chua
 - Tiancheng Feng
@@ -23,9 +25,16 @@ The capstone video demonstration can be found [here](https://www.youtube.com/wat
 ### State Machines
 The software state machine uses the head pose and body pose estimation models to determine how the car should move. The models are used in sequence to achieve the desired result.
 
+![sw_statemachine](img/sw_statemachine.png)
+
 The hardware state machine processes the flow of data from the camera to the motors driving the car.
+
+![hw_statemachine](img/hw_statemachine.png)
+
 ### Gesture Classifier
 The gesture classification extracts the angles between the output segments to determine which gesture was provided.
+
+![gesture_classification](img/gesture_classification.png)
 
 ## Setup Configuration
 
