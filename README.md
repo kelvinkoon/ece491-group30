@@ -21,6 +21,18 @@ The Atlas board communicates with an Arduino using UART communication, and after
 
 The capstone video demonstration can be found [here](https://www.youtube.com/watch?v=mW9Bn993z3k).
 
+
+## Directory Overview
+```
+├── atlas_utils             # Atlas utils module
+├── model                   # Store models and offline models here
+├── presenterserver         # Presenter Server module
+├── reference_pose          # Reference poses for classification
+├── scripts                 # run_presenter_server.sh script
+└── src                     # Main program
+    └── sketch_rccar        # Arduino program file 
+```
+
 ## Software Architecture
 ### State Machines
 The software state machine uses the head pose and body pose estimation models to determine how the car should move. The models are used in sequence to achieve the desired result.
@@ -105,7 +117,7 @@ protobuf
 On the server/PC, clone or download the project repository.
 
 ### Programming Language
-The entirety of the project was written using Python3 for the Ascend board and ArduinoC for the Arduino microcontroller. Python and C++ are both compatible with the Ascend platform. The simpler syntax of Python was preferred to allow for faster prototyping. Furthermore, the example code in the open-source repository was mostly in Python, which made it easier to follow. The Arduino microcontroller is built off of Arduino C, making it the best choice. All code written by our team is located in the `code` folder. 
+The entirety of the project was written using Python3 for the Ascend board and ArduinoC for the Arduino microcontroller. Python and C++ are both compatible with the Ascend platform. The simpler syntax of Python was preferred to allow for faster prototyping. Furthermore, the example code in the open-source repository was mostly in Python, which made it easier to follow. The Arduino microcontroller is built off of Arduino C, making it the best choice. All code written by our team is located in the `src` folder. 
 - State Machine: Dictated what the RC car should do at each step of the intersection
 - Deep Learning Models: Allowed interfacing with the deep learning models using the Ascend board's API
 - Serial Communication: Established communication between the Ascend board and Arduino micronctonroller
