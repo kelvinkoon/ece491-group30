@@ -31,6 +31,9 @@ The capstone video demonstration can be found [here](https://www.youtube.com/wat
 ├── scripts                 # run_presenter_server.sh script
 └── src                     # Main program
     └── sketch_rccar        # Arduino program file 
+    └── main.py             # State Machine and Model Execution
+    └── pose_decode.py      # Decoding body pose
+    └── uart.py             # 200DK Uart API
 ```
 
 ## Software Architecture
