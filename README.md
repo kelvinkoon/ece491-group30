@@ -152,18 +152,7 @@ The server part code in the directory `script/run_presenter_server.sh` needs to 
     
     Generally, when connecting via USB, atlas200dk\_board\_ip is the USB network port ip of the development board, and the default is 192.168.1.2. When connecting through a network port, atlas200dk\_board\_ip is the network port ip of the development board, and the default is 192.168.0.2.
 
-3.  Go to the application code on Atlas 200 DK board.
-   
-    Navigate to the directory where the sample_bodypose application code is located, such as: AscendProjects/sample_bodypose, execute the following command to copy the application code to the development board. If the copy fails, please check if there is a directory HIAI\_PROJECTS on the development board, and if not, create it.
-
-    ```
-    scp -r ~/AscendProjects/<project-name> HwHiAiUser@192.168.1.2:/home/HwHiAiUser/HIAI\_PROJECTS
-    ```
-
-    Enter the development board password when prompted for password. The default password of the development board is `Mind@123`
-
-    
-4.  Start Presenter Server, if you need to view the detection results using presenter server for the live input or video source, otherwise, skip this step.
+3.  Start Presenter Server, if you need to view the detection results using presenter server for the live input or video source, otherwise, skip this step.
 
     Execute the following command to start the Presenter Server in the background.
 
@@ -191,13 +180,9 @@ The server part code in the directory `script/run_presenter_server.sh` needs to 
 
 ## Run Application
 
-1. Make sure the presenter server is running on the server side. In the project main directory run the following:
-    ```
-    bash run_presenter_server.sh &
-    ```
+1. Make sure the presenter server is running on the server side. 
 
-
-2. On the development board, navigate to the code directory and run:
+2. On the development board, navigate to the `src` directory of the project and run:
     ```
     python3 main.py
     ```
